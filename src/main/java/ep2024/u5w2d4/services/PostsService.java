@@ -22,11 +22,11 @@ import java.util.UUID;
 @Service
 public class PostsService {
     @Autowired
-    PostsRepository postsRepository;
+    private PostsRepository postsRepository;
     @Autowired
-    AuthorService authorService;
+    private AuthorService authorService;
     @Autowired
-    Cloudinary cloudinaryUploader;
+    private Cloudinary cloudinaryUploader;
 
     public Page<BlogPost> getPosts(int pageNumber, int pageSize, String sortBy) {
         if (pageSize > 20) pageSize = 20;

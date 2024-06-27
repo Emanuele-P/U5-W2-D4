@@ -12,6 +12,7 @@ public record NewPostDTO(
     @NotBlank(message = "Title must not be empty!")
     @Size(min = 10, max = 100, message = "Title must be between 10 and 100 characters.")
     String title,
+    @NotBlank
     @URL(message = "Cover must be a valid URL address!")
     String cover,
     @NotBlank(message = "Content must not be empty!")
