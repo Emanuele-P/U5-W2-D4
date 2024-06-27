@@ -1,31 +1,40 @@
 package ep2024.u5w2d4.exceptions;
 
+import ep2024.u5w2d4.payloads.ErrorsDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorsPayload handleBadRequest(BadRequestException ex) {
-        return new ErrorsPayload(ex.getMessage(), LocalDateTime.now());
+    public ErrorsDTO handleBadRequest(BadRequestException ex) {
+        if (ex.getErrorsList() != null) {
+            String message = ex.getErrorsList().stream()
+                    .map(objectError -> objectError.getDefaultMessage())
+                    .collect(Collectors.joining(". "));
+            return new ErrorsDTO(message, LocalDateTime.now());
+        } else {
+            return new ErrorsDTO(ex.getMessage(), LocalDateTime.now());
+        }
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorsPayload handleNotFound(NotFoundException ex) {
-        return new ErrorsPayload(ex.getMessage(), LocalDateTime.now());
+    public ErrorsDTO handleNotFound(NotFoundException ex) {
+        return new ErrorsDTO(ex.getMessage(), LocalDateTime.now());
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorsPayload handleGenericErrors(Exception ex) {
+    public ErrorsDTO handleGenericErrors(Exception ex) {
         ex.printStackTrace();
-        return new ErrorsPayload("Internal error, try later!", LocalDateTime.now());
+        return new ErrorsDTO("Server internal error, please try again later!", LocalDateTime.now());
     }
 }

@@ -18,33 +18,33 @@ public class AuthorsController {
 
     //GET all http://localhost:3001/authors
     @GetMapping
-    private Page<Author> getAllAuthors(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "id") String sortBy) {
+    public Page<Author> getAllAuthors(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "id") String sortBy) {
         return this.authorService.getAuthors(page, size, sortBy);
     }
 
     //POST http://localhost:3001/authors +body
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    private Author save(@RequestBody Author body) {
+    public Author save(@RequestBody Author body) {
         return this.authorService.save(body);
     }
 
     //GET one http://localhost:3001/authors/:id
     @GetMapping("/{id}")
-    private Author findAuthorById(@PathVariable UUID id) {
+    public Author findAuthorById(@PathVariable UUID id) {
         return this.authorService.findById(id);
     }
 
     //PUT http://localhost:3001/authors/:id + body
     @PutMapping("/{id}")
-    private Author findAuthorByIdAndUpdate(@PathVariable UUID id, @RequestBody Author body) {
+    public Author findAuthorByIdAndUpdate(@PathVariable UUID id, @RequestBody Author body) {
         return this.authorService.findByIdAndUpdate(id, body);
     }
 
     //DELETE http://localhost:3001/authors/:id
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    private void findAuthorByIdAndDelete(@PathVariable UUID id) {
+    public void findAuthorByIdAndDelete(@PathVariable UUID id) {
         this.authorService.findByIdAndDelete(id);
     }
 }

@@ -1,7 +1,9 @@
 package ep2024.u5w2d4.services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import ep2024.u5w2d4.entities.Author;
-import ep2024.u5w2d4.entities.BlogPayload;
+import ep2024.u5w2d4.payloads.NewPostDTO;
 import ep2024.u5w2d4.entities.BlogPost;
 import ep2024.u5w2d4.exceptions.BadRequestException;
 import ep2024.u5w2d4.exceptions.NotFoundException;
@@ -12,7 +14,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -21,6 +25,8 @@ public class PostsService {
     PostsRepository postsRepository;
     @Autowired
     AuthorService authorService;
+    @Autowired
+    Cloudinary cloudinaryUploader;
 
     public Page<BlogPost> getPosts(int pageNumber, int pageSize, String sortBy) {
         if (pageSize > 20) pageSize = 20;
@@ -28,16 +34,16 @@ public class PostsService {
         return postsRepository.findAll(pageable);
     }
 
-    public BlogPost save(BlogPayload payload) {
-        Author author = authorService.findById(payload.getAuthorId());
+    public BlogPost save(NewPostDTO body) {
+        Author author = authorService.findById(body.authorId());
 
-        this.postsRepository.findByTitle(payload.getTitle()).ifPresent(
+        this.postsRepository.findByTitle(body.title()).ifPresent(
                 post -> {
-                    throw new BadRequestException("A post entitled " + payload.getTitle() + " exists already!");
+                    throw new BadRequestException("A post entitled " + body.title() + " exists already!");
                 }
         );
 
-        BlogPost newPost = new BlogPost(payload.getGenre(), payload.getTitle(), payload.getCover(), payload.getContent(), payload.getReadingTime());
+        BlogPost newPost = new BlogPost(body.genre(), body.title(), body.cover(), body.content(), body.readingTime());
         newPost.setAuthor(author);
         return postsRepository.save(newPost);
     }
@@ -51,18 +57,28 @@ public class PostsService {
         this.postsRepository.delete(found);
     }
 
-    public BlogPost findByIdAndUpdate(UUID postId, BlogPayload updatedPost) {
+    public BlogPost findByIdAndUpdate(UUID postId, NewPostDTO updatedPost) {
         BlogPost found = this.findById(postId);
-        found.setGenre(updatedPost.getGenre());
-        found.setTitle(updatedPost.getTitle());
-        found.setCover(updatedPost.getCover());
-        found.setContent(updatedPost.getContent());
-        found.setReadingTime(updatedPost.getReadingTime());
+        found.setGenre(updatedPost.genre());
+        found.setTitle(updatedPost.title());
+        found.setCover(updatedPost.cover());
+        found.setContent(updatedPost.content());
+        found.setReadingTime(updatedPost.readingTime());
 
-        if(found.getAuthor().getId() != updatedPost.getAuthorId()){
-            Author newAuthor = authorService.findById(updatedPost.getAuthorId());
+        if(found.getAuthor().getId() != updatedPost.authorId()){
+            Author newAuthor = authorService.findById(updatedPost.authorId());
             found.setAuthor(newAuthor);
         }
         return this.postsRepository.save(found);
+    }
+
+    public String uploadImage(MultipartFile file) throws IOException {
+        return (String) cloudinaryUploader.uploader().upload(file.getBytes(), ObjectUtils.emptyMap()).get("url");
+    }
+
+    public BlogPost updateCoverURL(UUID postId, String url) {
+        BlogPost post = this.findById(postId);
+        post.setCover(url);
+        return this.postsRepository.save(post);
     }
 }
